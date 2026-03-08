@@ -214,7 +214,7 @@ def main():
         pred_label = class_names[pred_idx] if pred_idx < len(class_names) else str(pred_idx)
         conf = float(p[pred_idx])
 
-        st.image(arr, caption="Input Image", use_container_width=True)
+        st.image(arr, caption="Input Image", use_column_width=True)
         st.success(f"Prediction: {pred_label}")
         st.write(f"Confidence: **{conf:.4f}**")
 
@@ -225,7 +225,7 @@ def main():
     st.subheader("Explainability")
     explain_path = find_explainability_image()
     if explain_path is not None:
-        st.image(str(explain_path), caption="Explainability graph", use_container_width=True)
+        st.image(str(explain_path), caption="Explainability graph", use_column_width=True)
     else:
         st.info(
             "Explainability image not found. Add one of these files: "
@@ -235,5 +235,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
