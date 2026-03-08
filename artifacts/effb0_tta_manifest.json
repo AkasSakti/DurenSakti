@@ -1,0 +1,10 @@
+{
+  "bundle_name": "effb0_tta",
+  "bundle_dir": "/content/gdrive/MyDrive/Colab Notebooks/widuri/artifacts/effb0_tta",
+  "files": {
+    "keras": "/content/gdrive/MyDrive/Colab Notebooks/widuri/artifacts/effb0_tta/effb0_tta_model.keras",
+    "savedmodel": "/content/gdrive/MyDrive/Colab Notebooks/widuri/artifacts/effb0_tta/effb0_tta_savedmodel",
+    "class_names": "/content/gdrive/MyDrive/Colab Notebooks/widuri/artifacts/effb0_tta/effb0_tta_class_names.npy",
+    "meta": "/content/gdrive/MyDrive/Colab Notebooks/widuri/artifacts/effb0_tta/effb0_tta_meta.json"
+  }
+}
