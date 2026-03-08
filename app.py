@@ -9,8 +9,61 @@ import streamlit as st
 import tensorflow as tf
 from PIL import Image
 
+# Auto-download helper for Google Drive folder
+import gdown
+
 APP_DIR = Path(__file__).resolve().parent
 BUNDLE_DIR = APP_DIR / "effb0_tta"
+
+# Provided by user
+DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1A5QD3RfLkPEM7vU9LscPFXn-aIWQ9F0p?usp=sharing"
+
+
+def _bundle_has_model() -> bool:
+    keras_path = BUNDLE_DIR / "effb0_tta_model.keras"
+    savedmodel_pb = BUNDLE_DIR / "effb0_tta_savedmodel" / "saved_model.pb"
+    return keras_path.exists() or savedmodel_pb.exists()
+
+
+@st.cache_resource
+def ensure_bundle_available() -> bool:
+    """Ensure required bundle exists locally. Download from Drive folder if missing."""
+    BUNDLE_DIR.mkdir(parents=True, exist_ok=True)
+
+    need_files = [
+        BUNDLE_DIR / "effb0_tta_meta.json",
+        BUNDLE_DIR / "effb0_tta_class_names.npy",
+    ]
+
+    if _bundle_has_model() and all(p.exists() for p in need_files):
+        return True
+
+    try:
+        st.info("Model bundle not found locally. Downloading from Google Drive...")
+        # Download all files inside the shared folder into BUNDLE_DIR
+        gdown.download_folder(
+            url=DRIVE_FOLDER_URL,
+            output=str(BUNDLE_DIR),
+            quiet=False,
+            use_cookies=False,
+            remaining_ok=True,
+        )
+    except Exception as e:
+        st.error(
+            "Failed to download model bundle from Google Drive folder. "
+            "Make sure link sharing is set to 'Anyone with the link'."
+        )
+        st.exception(e)
+        return False
+
+    if not _bundle_has_model():
+        st.error(
+            "Download completed but model file is still missing. "
+            "Expected `effb0_tta_model.keras` or `effb0_tta_savedmodel/saved_model.pb` in bundle."
+        )
+        return False
+
+    return True
 
 
 def load_meta() -> dict:
@@ -26,6 +79,9 @@ def load_class_names(meta: dict) -> list[str]:
     cname = meta.get("class_names_path", "effb0_tta_class_names.npy")
     cpath = BUNDLE_DIR / cname
     if not cpath.exists():
+        # fallback fixed name
+        cpath = BUNDLE_DIR / "effb0_tta_class_names.npy"
+    if not cpath.exists():
         st.error(f"Class names file not found: {cpath}")
         st.stop()
     arr = np.load(cpath, allow_pickle=True)
@@ -39,10 +95,23 @@ def load_model(meta: dict):
     if keras_path.exists():
         return tf.keras.models.load_model(keras_path, compile=False)
 
+    # fallback fixed keras filename
+    fallback_keras = BUNDLE_DIR / "effb0_tta_model.keras"
+    if fallback_keras.exists():
+        return tf.keras.models.load_model(fallback_keras, compile=False)
+
     savedmodel_name = meta.get("model_savedmodel_path", "effb0_tta_savedmodel")
     savedmodel_path = BUNDLE_DIR / savedmodel_name
     if savedmodel_path.exists():
         sm = tf.saved_model.load(str(savedmodel_path))
+        if "serving_default" not in sm.signatures:
+            raise RuntimeError("SavedModel has no serving_default signature")
+        return sm.signatures["serving_default"]
+
+    # fallback fixed savedmodel directory
+    fallback_sm = BUNDLE_DIR / "effb0_tta_savedmodel"
+    if fallback_sm.exists():
+        sm = tf.saved_model.load(str(fallback_sm))
         if "serving_default" not in sm.signatures:
             raise RuntimeError("SavedModel has no serving_default signature")
         return sm.signatures["serving_default"]
@@ -96,6 +165,10 @@ def find_explainability_image() -> Path | None:
 def main():
     st.set_page_config(page_title="Durian Leaf Disease Classifier", layout="centered")
 
+    ok = ensure_bundle_available()
+    if not ok:
+        st.stop()
+
     meta = load_meta()
     class_names = load_class_names(meta)
     model = load_model(meta)
@@ -109,10 +182,10 @@ def main():
     transforms = meta.get("tta_transforms", ["identity"])
 
     st.title("Durian Leaf Disease Classifier")
-    st.write(
-        f"Selected algorithm: **{model_name}** | "
-        f"Test Accuracy: **{acc:.4f}**" if isinstance(acc, (float, int)) else f"Selected algorithm: **{model_name}**"
-    )
+    if isinstance(acc, (float, int)):
+        st.write(f"Selected algorithm: **{model_name}** | Test Accuracy: **{acc:.4f}**")
+    else:
+        st.write(f"Selected algorithm: **{model_name}**")
 
     c1, c2, c3 = st.columns(3)
     c1.metric("Accuracy", f"{acc:.4f}" if isinstance(acc, (float, int)) else "-")
