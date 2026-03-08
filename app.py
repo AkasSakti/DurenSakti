@@ -93,12 +93,18 @@ def load_model(meta: dict):
     keras_name = meta.get("model_keras_path", "effb0_tta_model.keras")
     keras_path = BUNDLE_DIR / keras_name
     if keras_path.exists():
-        return tf.keras.models.load_model(keras_path, compile=False)
+        try:
+            return tf.keras.models.load_model(keras_path, compile=False)
+        except Exception as e:
+            print(f'Keras model load failed, fallback to SavedModel. Detail: {e}')
 
     # fallback fixed keras filename
     fallback_keras = BUNDLE_DIR / "effb0_tta_model.keras"
     if fallback_keras.exists():
-        return tf.keras.models.load_model(fallback_keras, compile=False)
+        try:
+            return tf.keras.models.load_model(fallback_keras, compile=False)
+        except Exception as e:
+            print(f'Fallback Keras load failed, trying SavedModel. Detail: {e}')
 
     savedmodel_name = meta.get("model_savedmodel_path", "effb0_tta_savedmodel")
     savedmodel_path = BUNDLE_DIR / savedmodel_name
@@ -229,3 +235,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
