@@ -15,9 +15,9 @@
     224
   ],
   "num_classes": 5,
-  "best_model_accuracy": 0.8348115299334812,
-  "macro_f1": 0.8312573854561733,
-  "balanced_accuracy": 0.832517500314397,
+  "best_model_accuracy": 0.8403547671840355,
+  "macro_f1": 0.837144496915385,
+  "balanced_accuracy": 0.8379665178660819,
   "model_keras_path": "effb0_tta_model.keras",
   "model_savedmodel_path": "effb0_tta_savedmodel",
   "class_names_path": "effb0_tta_class_names.npy"
