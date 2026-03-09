@@ -232,20 +232,22 @@ def main():
         pred_label = class_names[pred_idx] if pred_idx < len(class_names) else str(pred_idx)
         conf = float(p[pred_idx])
 
-        st.subheader("Prediction Results")
+        st.markdown("<h2 style='text-align:center; margin-bottom: 0.4rem;'>Prediction Results</h2>", unsafe_allow_html=True)
         left_col, right_col = st.columns([1, 1.1], gap="large")
 
         with left_col:
-            # Keep a fixed, publication-style preview size for cleaner layout.
-            preview_fixed = ImageOps.fit(preview_img, (320, 320), method=Image.Resampling.LANCZOS)
-            st.image(preview_fixed, caption="Input Image (320x320)", width=320)
+            # Centered fixed preview (420x420) for cleaner article-style layout.
+            preview_fixed = ImageOps.fit(preview_img, (420, 420), method=Image.Resampling.LANCZOS)
+            c_l, c_m, c_r = st.columns([1, 5, 1])
+            with c_m:
+                st.image(preview_fixed, caption="Input Image (420x420)", width=420)
             st.success(f"Prediction: {pred_label}")
             st.write(f"Confidence: **{conf:.4f}**")
 
         with right_col:
             prob_df = pd.DataFrame({"Class": class_names, "Probability": p[: len(class_names)]})
             st.subheader("Class Probabilities")
-            st.bar_chart(prob_df.set_index("Class"), height=320)
+            st.bar_chart(prob_df.set_index("Class"), height=420)
 
     st.subheader("Explainability")
     explain_path = find_explainability_image()
