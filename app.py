@@ -169,7 +169,7 @@ def find_explainability_image() -> Path | None:
 
 
 def main():
-    st.set_page_config(page_title="Durian Leaf Disease Classifier", layout="centered")
+    st.set_page_config(page_title="Durian Leaf Disease Classifier", layout="wide")
 
     ok = ensure_bundle_available()
     if not ok:
@@ -214,13 +214,18 @@ def main():
         pred_label = class_names[pred_idx] if pred_idx < len(class_names) else str(pred_idx)
         conf = float(p[pred_idx])
 
-        st.image(arr, caption="Input Image", use_column_width=True)
-        st.success(f"Prediction: {pred_label}")
-        st.write(f"Confidence: **{conf:.4f}**")
+        st.subheader("Prediction Results")
+        left_col, right_col = st.columns([1, 1], gap="large")
 
-        prob_df = pd.DataFrame({"Class": class_names, "Probability": p[: len(class_names)]})
-        st.subheader("Class Probabilities")
-        st.bar_chart(prob_df.set_index("Class"))
+        with left_col:
+            st.image(arr, caption="Input Image", use_container_width=True)
+            st.success(f"Prediction: {pred_label}")
+            st.write(f"Confidence: **{conf:.4f}**")
+
+        with right_col:
+            prob_df = pd.DataFrame({"Class": class_names, "Probability": p[: len(class_names)]})
+            st.subheader("Class Probabilities")
+            st.bar_chart(prob_df.set_index("Class"))
 
     st.subheader("Explainability")
     explain_path = find_explainability_image()
