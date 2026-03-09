@@ -203,6 +203,9 @@ def main():
     uploaded = st.file_uploader("Upload a leaf image", type=["jpg", "jpeg", "png"])
 
     if uploaded is not None:
+        uploaded.seek(0)
+        preview_img = Image.open(uploaded).convert("RGB")
+        uploaded.seek(0)
         arr = preprocess_image(uploaded, img_size)
         x = np.expand_dims(arr, axis=0)
 
@@ -215,10 +218,10 @@ def main():
         conf = float(p[pred_idx])
 
         st.subheader("Prediction Results")
-        left_col, right_col = st.columns([1, 1], gap="large")
+        left_col, right_col = st.columns([1, 1.1], gap="large")
 
         with left_col:
-            st.image(arr, caption="Input Image", use_container_width=True)
+            st.image(preview_img, caption="Input Image", use_column_width=True)
             st.success(f"Prediction: {pred_label}")
             st.write(f"Confidence: **{conf:.4f}**")
 
@@ -240,6 +243,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
