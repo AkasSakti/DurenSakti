@@ -168,6 +168,21 @@ def find_explainability_image() -> Path | None:
     return None
 
 
+def render_explainability_centered(img_path: Path, target_height: int = 480, target_width: int = 1280):
+    """Render explainability image centered with fixed 1280x480 and high-quality resize."""
+    img = Image.open(img_path).convert("RGB")
+    if target_height <= 0 or target_width <= 0:
+        st.image(str(img_path), caption="Explainability graph")
+        return
+
+    resized = img.resize((target_width, target_height), Image.Resampling.LANCZOS)
+
+    # Center image in page
+    c_left, c_mid, c_right = st.columns([1, 5, 1])
+    with c_mid:
+        st.image(resized, caption="Explainability graph", width=target_width)
+
+
 def main():
     st.set_page_config(page_title="Durian Leaf Disease Classifier", layout="wide")
 
@@ -235,7 +250,7 @@ def main():
     st.subheader("Explainability")
     explain_path = find_explainability_image()
     if explain_path is not None:
-        st.image(str(explain_path), caption="Explainability graph", use_column_width=True)
+        render_explainability_centered(explain_path, target_height=480, target_width=1280)
     else:
         st.info(
             "Explainability image not found. Add one of these files: "
