@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import tensorflow as tf
-from PIL import Image
+from PIL import Image, ImageOps
 
 # Auto-download helper for Google Drive folder
 import gdown
@@ -221,14 +221,16 @@ def main():
         left_col, right_col = st.columns([1, 1.1], gap="large")
 
         with left_col:
-            st.image(preview_img, caption="Input Image", use_column_width=True)
+            # Keep a fixed, publication-style preview size for cleaner layout.
+            preview_fixed = ImageOps.fit(preview_img, (244, 244), method=Image.Resampling.LANCZOS)
+            st.image(preview_fixed, caption="Input Image (244x244)", width=244)
             st.success(f"Prediction: {pred_label}")
             st.write(f"Confidence: **{conf:.4f}**")
 
         with right_col:
             prob_df = pd.DataFrame({"Class": class_names, "Probability": p[: len(class_names)]})
             st.subheader("Class Probabilities")
-            st.bar_chart(prob_df.set_index("Class"))
+            st.bar_chart(prob_df.set_index("Class"), height=244)
 
     st.subheader("Explainability")
     explain_path = find_explainability_image()
@@ -243,5 +245,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
